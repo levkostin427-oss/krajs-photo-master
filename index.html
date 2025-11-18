@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>КрайсФотоМастер — кликер</title>
+<style>
+  :root{
+    --bg1: #0f1724;
+    --bg2: #071022;
+    --glass: rgba(255,255,255,0.06);
+    --accent: #77ddff;
+    --accent2: #9b7dff;
+    --neon: #00e6ff;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;}
+  body{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background: radial-gradient(1200px 600px at 10% 10%, rgba(123, 63, 255,0.08), transparent),
+                radial-gradient(900px 400px at 90% 90%, rgba(0, 230, 255,0.04), transparent),
+                linear-gradient(180deg,var(--bg1),var(--bg2));
+    color:#e6eef6;
+    padding:28px;
+  }
+
+  .card{
+    width:min(980px,96vw);
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border-radius:18px;
+    padding:18px;
+    box-shadow: 0 10px 40px rgba(2,6,23,0.6), inset 0 1px 0 rgba(255,255,255,0.02);
+    display:grid;
+    grid-template-columns: 1fr 340px;
+    gap:18px;
+    align-items:center;
+    backdrop-filter: blur(6px) saturate(120%);
+    border: 1px solid rgba(255,255,255,0.03);
+  }
+
+  .left{
+    position:relative;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:12px;
+    background: linear-gradient(180deg, rgba(0,0,0,0.25), rgba(255,255,255,0.02));
+    border-radius:12px;
+  }
+
+  .photo{
+    width:100%;
+    max-height:74vh;
+    border-radius:10px;
+    overflow:hidden;
+    position:relative;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+    cursor:pointer;
+    transition: transform .18s ease;
+    user-select:none;
+  }
+  .photo:active{ transform: scale(.995); }
+
+  .photo img{
+    display:block;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    vertical-align:middle;
+  }
+
+  /* ripple + +1 */
+  .ripple{
+    position:absolute;
+    border-radius:50%;
+    pointer-events:none;
+    transform: translate(-50%,-50%) scale(0.1);
+    opacity:0.6;
+    animation: ripple .6s ease-out forwards;
+    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.18), rgba(255,255,255,0));
+    mix-blend-mode: screen;
+  }
+  @keyframes ripple{
+    to{ transform: translate(-50%,-50%) scale(3); opacity:0; }
+  }
+
+  .plus{
+    position:absolute;
+    left:50%;
+    transform: translateX(-50%);
+    font-weight:700;
+    font-size:20px;
+    pointer-events:none;
+    animation: plus .9s ease-out forwards;
+    text-shadow: 0 6px 18px rgba(0,0,0,0.6);
+  }
+  @keyframes plus{
+    0%{ transform: translate(-50%,0) scale(1); opacity:1 }
+    100%{ transform: translate(-50%,-60px) scale(1.2); opacity:0 }
+  }
+
+  /* right panel */
+  .right{
+    padding:18px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    align-items:stretch;
+  }
+  .title{
+    font-size:20px;
+    font-weight:700;
+    letter-spacing:0.2px;
+    display:flex;
+    gap:10px;
+    align-items:center;
+  }
+
+  .title .logo{
+    width:48px;height:48px;border-radius:10px;
+    display:inline-grid;place-items:center;
+    background: linear-gradient(135deg,var(--accent),var(--accent2));
+    color:#022;
+    font-weight:800;
+    box-shadow: 0 6px 24px rgba(123,63,255,0.14);
+  }
+
+  .counter{
+    margin-top:6px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    padding:14px;border-radius:12px;border:1px solid rgba(255,255,255,0.03);
+    display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:12px;
+  }
+  .count-display{
+    display:flex;flex-direction:column;
+    gap:6px;
+  }
+  .emoji{
+    font-size:34px;
+  }
+  .count-num{
+    font-size:28px;font-weight:800;letter-spacing:0.6px;
+  }
+  .meta{
+    font-size:13px;color:rgba(230,238,246,0.72);
+  }
+
+  .controls{
+    margin-top:auto;
+    display:flex;gap:10px;align-items:center;
+  }
+
+  .btn{
+    appearance:none;border:0;padding:10px 14px;border-radius:10px;font-weight:700;cursor:pointer;
+    background:linear-gradient(90deg,var(--accent),var(--accent2));
+    color:#052;box-shadow:0 6px 18px rgba(123,63,255,0.12);
+    transition: transform .12s ease;
+  }
+  .btn:active{ transform: translateY(1px) }
+  .btn-ghost{
+    background:transparent;border:1px solid rgba(255,255,255,0.06);color:rgba(230,238,246,0.9)
+  }
+
+  .small{
+    font-size:13px;padding:8px 10px;border-radius:8px;
+  }
+
+  footer.note{ margin-top:10px;color:rgba(230,238,246,0.55); font-size:12px; }
+
+  /* responsive */
+  @media(max-width:880px){
+    .card{ grid-template-columns: 1fr; }
+    .right{ order:2; }
+    .left{ order:1; }
+    .photo{ max-height:60vh; }
+  }
+</style>
+</head>
+<body>
+  <main class="card" role="main" aria-label="КрайсФотоМастер кликер">
+    <section class="left">
+      <div id="photo" class="photo" tabindex="0" role="button" aria-pressed="false" aria-label="Нажми на фото чтобы засчитать клик">
+        <!-- Подставь другую ссылку сюда при необходимости -->
+        <img src="https://i.ibb.co/yBfKY4R4/1000098364.jpg" alt="Главное фото КрайсФотоМастер">
+      </div>
+    </section>
+
+    <aside class="right">
+      <div class="title">
+        <div class="logo">КФМ</div>
+        <div>
+          <div style="font-size:15px;color:var(--accent);font-weight:800">КрайсФотоМастер</div>
+          <div style="font-size:13px;color:rgba(230,238,246,0.72)">Кликай по фото — собирай лайки под смайлом 👋</div>
+        </div>
+      </div>
+
+      <div class="counter" aria-live="polite">
+        <div class="count-display">
+          <div class="emoji">👋</div>
+          <div class="count-num" id="count">0</div>
+          <div class="meta" id="meta">Кликов сохранено: <span id="savedAt">—</span></div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:8px;align-items:stretch;">
+          <button id="bigClick" class="btn small" aria-label="Большая кнопка клика">Кликнуть</button>
+          <button id="reset" class="btn btn-ghost small" aria-label="Сбросить счёт">Сбросить</button>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button id="share" class="btn small btn-ghost" title="Скопировать ссылку (локально не сработает)"><strong>Копировать ссылку</strong></button>
+        <button id="openRaw" class="btn small">Открыть фото</button>
+      </div>
+
+      <footer class="note">Счёт сохраняется в этом браузере (localStorage). Если хочешь общий счёт — скажи, подключим базу данных.</footer>
+    </aside>
+  </main>
+
+<script>
+(() => {
+  const PHOTO = document.getElementById('photo');
+  const COUNT = document.getElementById('count');
+  const BIG = document.getElementById('bigClick');
+  const RESET = document.getElementById('reset');
+  const META = document.getElementById('meta');
+  const SAVED_AT = document.getElementById('savedAt');
+  const SHARE = document.getElementById('share');
+  const OPENRAW = document.getElementById('openRaw');
+
+  const STORAGE_KEY = 'krajs_clicker_count_v1';
+  const STORAGE_TIME = 'krajs_clicker_time_v1';
+
+  function load() {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    const time = localStorage.getItem(STORAGE_TIME);
+    const n = raw ? parseInt(raw,10) : 0;
+    COUNT.textContent = isNaN(n) ? 0 : n;
+    SAVED_AT.textContent = time ? new Date(parseInt(time,10)).toLocaleString('ru-RU') : '—';
+  }
+
+  function save(n){
+    localStorage.setItem(STORAGE_KEY, String(n));
+    localStorage.setItem(STORAGE_TIME, String(Date.now()));
+    SAVED_AT.textContent = new Date().toLocaleString('ru-RU');
+  }
+
+  function doClick(x,y){
+    let n = parseInt(COUNT.textContent,10) || 0;
+    n += 1;
+    COUNT.textContent = n;
+    animateClick(x,y);
+    save(n);
+  }
+
+  function animateClick(x,y){
+    const rect = PHOTO.getBoundingClientRect();
+    const relX = x - rect.left;
+    const relY = y - rect.top;
+
+    const ripple = document.createElement('div');
+    ripple.className = 'ripple';
+    ripple.style.left = relX + 'px';
+    ripple.style.top = relY + 'px';
+    ripple.style.width = ripple.style.height = Math.max(rect.width, rect.height)/3 + 'px';
+    PHOTO.appendChild(ripple);
+    setTimeout(()=>ripple.remove(),700);
+
+    const plus = document.createElement('div');
+    plus.className = 'plus';
+    plus.style.top = (relY - 10) + 'px';
+    plus.textContent = '+1';
+    PHOTO.appendChild(plus);
+    setTimeout(()=>plus.remove(),900);
+
+    // small flash on photo border
+    PHOTO.style.boxShadow = '0 12px 40px rgba(123,63,255,0.18), 0 0 28px rgba(0,230,255,0.06)';
+    setTimeout(()=>PHOTO.style.boxShadow = '',140);
+  }
+
+  // click handlers
+  PHOTO.addEventListener('click', (e) => {
+    const x = e.clientX, y = e.clientY;
+    doClick(x,y);
+  });
+
+  BIG.addEventListener('click', (e) => {
+    // center of photo
+    const rect = PHOTO.getBoundingClientRect();
+    doClick(rect.left + rect.width/2, rect.top + rect.height/2);
+  });
+
+  RESET.addEventListener('click', () => {
+    if(!confirm('Сбросить счёт? Это удалит данные в этом браузере.')) return;
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(STORAGE_TIME);
+    COUNT.textContent = '0';
+    SAVED_AT.textContent = '—';
+  });
+
+  SHARE.addEventListener('click', async () => {
+    const url = location.href;
+    try{
+      await navigator.clipboard.writeText(url);
+      SHARE.textContent = 'Скопировано!';
+      setTimeout(()=> SHARE.textContent = 'Копировать ссылку',1400);
+    }catch(e){
+      SHARE.textContent = 'Ошибка копирования';
+      setTimeout(()=> SHARE.textContent = 'Копировать ссылку',1400);
+    }
+  });
+
+  OPENRAW.addEventListener('click', () => {
+    const img = PHOTO.querySelector('img');
+    if(img && img.src) window.open(img.src, '_blank');
+  });
+
+  // keyboard support: Enter / Space on focused photo
+  PHOTO.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      const rect = PHOTO.getBoundingClientRect();
+      doClick(rect.left + rect.width/2, rect.top + rect.height/2);
+    }
+  });
+
+  // init
+  load();
+
+})();
+</script>
+</body>
+</html>
